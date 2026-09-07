@@ -1,101 +1,13 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flashcard Quiz Tool</title>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      max-width: 640px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      color: #222;
-    }
-    h1 {
-      font-size: 1.5rem;
-    }
-    #card-list {
-      list-style: none;
-      padding: 0;
-    }
-    #card-list li {
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 0.75rem 1rem;
-      margin-bottom: 0.5rem;
-    }
-    .term {
-      font-weight: 600;
-    }
-    .definition {
-      color: #555;
-    }
-  </style>
-</head>
-<body>
-  <h1>Flashcard Quiz Tool</h1>
-
-  <ul id="card-list"></ul>
-
-  <script>
-    // --- Data model ---
-    // Each card is one term/definition pair, plus settings for how quiz mode
-    // should generate wrong answers for it later. `distractorMode` and its
-    // related fields aren't used yet in this step — they're here now so every
-    // card created from step 1 onward already has the full shape, and later
-    // steps don't need to migrate old data.
-    let cards = [
-      {
-        id: crypto.randomUUID(),
-        term: "Photosynthesis",
-        definition: "The process plants use to convert light into chemical energy.",
-        distractorMode: "auto", // "auto" = pull wrong answers from other cards, "custom" = user-written
-        customWrongAnswers: [],
-        numChoices: 4,
-      },
-      {
-        id: crypto.randomUUID(),
-        term: "Mitochondria",
-        definition: "The organelle that produces most of a cell's ATP energy.",
-        distractorMode: "auto",
-        customWrongAnswers: [],
-        numChoices: 4,
-      },
-      {
-        id: crypto.randomUUID(),
-        term: "Osmosis",
-        definition: "The movement of water across a membrane from low to high solute concentration.",
-        distractorMode: "auto",
-        customWrongAnswers: [],
-        numChoices: 4,
-      },
-    ];
-
-    // --- Rendering ---
-    // Re-draws the whole list from the `cards` array. Simple full re-render
-    // instead of tracking individual DOM diffs — the deck size in this app is
-    // small enough that this stays fast, and it keeps the code easy to follow.
-    function renderCardList() {
-      const list = document.getElementById("card-list");
-      list.innerHTML = "";
-
-      if (cards.length === 0) {
-        list.innerHTML = "<li>No cards yet.</li>";
-        return;
-      }
-
-      for (const card of cards) {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <div class="term">${card.term}</div>
-          <div class="definition">${card.definition}</div>
-        `;
-        list.appendChild(li);
-      }
-    }
-
-    renderCardList();
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flashcard Quiz Tool</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

@@ -1,0 +1,14 @@
+.item {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.term {
+  font-weight: 600;
+}
+
+.definition {
+  color: #555;
+}

@@ -5,9 +5,16 @@ its definition and pick the correct match from multiple-choice options.
 
 ## Phase 1 (current)
 
-Fully offline — open `index.html` directly in any browser, no server or install
-needed. Cards are saved to your browser's localStorage, with JSON export/import
-for backup.
+Built with Vite + React + TypeScript (chosen so Phase 2 can add Supabase +
+Vercel cleanly). Fully client-side — no backend required yet. Run locally with:
+
+```
+npm install
+npm run dev
+```
+
+Cards are saved to your browser's localStorage, with JSON export/import for
+backup.
 
 ## Status
 
