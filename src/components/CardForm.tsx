@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Card, DistractorMode } from "../types/card";
-import type { CardValues } from "../hooks/useCards";
+import type { CardValues } from "../hooks/useDecks";
 import styles from "./CardForm.module.css";
 
 interface CardFormProps {

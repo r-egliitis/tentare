@@ -1,0 +1,38 @@
+.item {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.openButton {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.count {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}

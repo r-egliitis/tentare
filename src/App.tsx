@@ -1,19 +1,15 @@
-import { useMemo, useState } from "react";
-import { useCards } from "./hooks/useCards";
-import type { CardValues } from "./hooks/useCards";
-import { CardList } from "./components/CardList";
-import { CardForm } from "./components/CardForm";
-import { CardListControls } from "./components/CardListControls";
-import type { SortOrder } from "./components/CardListControls";
-import { ExportImportControls } from "./components/ExportImportControls";
+import { useState } from "react";
+import { useDecks } from "./hooks/useDecks";
+import { DeckList } from "./components/DeckList";
+import { DeckForm } from "./components/DeckForm";
+import { DeckView } from "./components/DeckView";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { Toast } from "./components/Toast";
-import { QuizView } from "./components/quiz/QuizView";
-import type { Card } from "./types/card";
+import type { Deck } from "./types/deck";
 import styles from "./App.module.css";
 
-type FormMode = { type: "add" } | { type: "edit"; card: Card } | null;
-type View = "list" | "quiz";
+type AppView = { type: "decks" } | { type: "deck"; deckId: string };
+type DeckFormMode = { type: "add" } | { type: "edit"; deck: Deck } | null;
 type ToastState = {
   message: string;
   actionLabel?: string;
@@ -21,97 +17,79 @@ type ToastState = {
 } | null;
 
 export function App() {
-  const { cards, addCard, updateCard, deleteCard, deleteCards, replaceCards } =
-    useCards();
-  const [formMode, setFormMode] = useState<FormMode>(null);
-  const [view, setView] = useState<View>("list");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("added");
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const {
+    decks,
+    addDeck,
+    renameDeck,
+    deleteDeck,
+    replaceAllDecks,
+    addCard,
+    updateCard,
+    deleteCard,
+    deleteCards,
+    replaceDeckCards,
+  } = useDecks();
+  const [appView, setAppView] = useState<AppView>({ type: "decks" });
+  const [deckFormMode, setDeckFormMode] = useState<DeckFormMode>(null);
   const [toast, setToast] = useState<ToastState>(null);
 
-  const visibleCards = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    const filtered = query
-      ? cards.filter(
-          (card) =>
-            card.term.toLowerCase().includes(query) ||
-            card.definition.toLowerCase().includes(query),
-        )
-      : cards;
-
-    if (sortOrder === "added") return filtered;
-    const sorted = [...filtered].sort((a, b) => a.term.localeCompare(b.term));
-    return sortOrder === "az" ? sorted : sorted.reverse();
-  }, [cards, searchQuery, sortOrder]);
-
-  const existingTerms = useMemo(
-    () =>
-      cards
-        .filter((c) => !(formMode?.type === "edit" && c.id === formMode.card.id))
-        .map((c) => c.term),
-    [cards, formMode],
-  );
-
-  function handleSave(values: CardValues) {
-    if (formMode?.type === "edit") {
-      updateCard(formMode.card.id, values);
+  function handleSaveDeck(name: string) {
+    if (deckFormMode?.type === "edit") {
+      renameDeck(deckFormMode.deck.id, name);
     } else {
-      addCard(values);
+      const newId = addDeck(name);
+      setAppView({ type: "deck", deckId: newId });
     }
-    setFormMode(null);
+    setDeckFormMode(null);
   }
 
-  function handleToggleSelect(id: string) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
+  function handleDeleteDeck(id: string) {
+    const deck = decks.find((d) => d.id === id);
+    if (!deck) return;
+    if (
+      !window.confirm(
+        `Delete quiz "${deck.name}" (${deck.cards.length} card(s))?`,
+      )
+    ) {
+      return;
+    }
 
-  function handleDeleteCard(id: string) {
-    const card = cards.find((c) => c.id === id);
-    if (!card) return;
-
-    const previousCards = cards;
-    deleteCard(id);
+    const previousDecks = decks;
+    deleteDeck(id);
     setToast({
-      message: `Deleted "${card.term}".`,
+      message: `Deleted quiz "${deck.name}" (${deck.cards.length} card(s)).`,
       actionLabel: "Undo",
-      onAction: () => replaceCards(previousCards),
+      onAction: () => replaceAllDecks(previousDecks),
     });
   }
 
-  function handleDeleteSelected() {
-    const ids = [...selectedIds];
-    if (ids.length === 0) return;
-    if (!window.confirm(`Delete ${ids.length} selected card(s)?`)) return;
+  if (appView.type === "deck") {
+    const deck = decks.find((d) => d.id === appView.deckId);
+    if (!deck) {
+      // Deck no longer exists (e.g. deleted elsewhere) — adjust state
+      // during render (React's recommended pattern for this, per
+      // https://react.dev/learn/you-might-not-need-an-effect) rather than
+      // an effect: it re-renders immediately with the corrected view
+      // instead of committing a throwaway frame first.
+      setAppView({ type: "decks" });
+      return null;
+    }
 
-    const previousCards = cards;
-    deleteCards(ids);
-    setSelectedIds(new Set());
-    setToast({
-      message: `Deleted ${ids.length} card(s).`,
-      actionLabel: "Undo",
-      onAction: () => replaceCards(previousCards),
-    });
-  }
-
-  function handleImport(imported: Card[]) {
-    replaceCards(imported);
-    setSelectedIds(new Set());
-  }
-
-  if (view === "quiz") {
     return (
       <>
         <div className={styles.header}>
           <h1>Flashcard Quiz Tool</h1>
           <ThemeToggle />
         </div>
-        <QuizView cards={cards} onExit={() => setView("list")} />
+        <DeckView
+          deck={deck}
+          onBack={() => setAppView({ type: "decks" })}
+          onAddCard={(values) => addCard(deck.id, values)}
+          onUpdateCard={(cardId, values) => updateCard(deck.id, cardId, values)}
+          onDeleteCard={(cardId) => deleteCard(deck.id, cardId)}
+          onDeleteCards={(ids) => deleteCards(deck.id, ids)}
+          onReplaceCards={(cards) => replaceDeckCards(deck.id, cards)}
+        />
       </>
     );
   }
@@ -123,53 +101,25 @@ export function App() {
         <ThemeToggle />
       </div>
 
-      {formMode ? (
-        <CardForm
-          initialCard={formMode.type === "edit" ? formMode.card : undefined}
-          existingTerms={existingTerms}
-          onSave={handleSave}
-          onCancel={() => setFormMode(null)}
+      {deckFormMode ? (
+        <DeckForm
+          initialDeck={deckFormMode.type === "edit" ? deckFormMode.deck : undefined}
+          onSave={handleSaveDeck}
+          onCancel={() => setDeckFormMode(null)}
         />
       ) : (
         <div className={styles.actionRow}>
-          <button type="button" onClick={() => setFormMode({ type: "add" })}>
-            Add Card
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("quiz")}
-            disabled={cards.length < 2}
-          >
-            Start Quiz
-          </button>
-        </div>
-      )}
-      {cards.length < 2 && <p>Add at least 2 cards to start a quiz.</p>}
-
-      <ExportImportControls cards={cards} onImport={handleImport} />
-
-      <CardListControls
-        query={searchQuery}
-        onQueryChange={setSearchQuery}
-        sortOrder={sortOrder}
-        onSortOrderChange={setSortOrder}
-      />
-
-      {selectedIds.size > 0 && (
-        <div className={styles.actionRow}>
-          <button type="button" onClick={handleDeleteSelected}>
-            Delete Selected ({selectedIds.size})
+          <button type="button" onClick={() => setDeckFormMode({ type: "add" })}>
+            New Quiz
           </button>
         </div>
       )}
 
-      <CardList
-        cards={visibleCards}
-        isFiltered={searchQuery.trim().length > 0}
-        selectedIds={selectedIds}
-        onToggleSelect={handleToggleSelect}
-        onEdit={(card) => setFormMode({ type: "edit", card })}
-        onDelete={handleDeleteCard}
+      <DeckList
+        decks={decks}
+        onOpen={(id) => setAppView({ type: "deck", deckId: id })}
+        onRename={(deck) => setDeckFormMode({ type: "edit", deck })}
+        onDelete={handleDeleteDeck}
       />
 
       {toast && (
