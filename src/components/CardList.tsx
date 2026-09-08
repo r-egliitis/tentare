@@ -4,9 +4,11 @@ import styles from "./CardList.module.css";
 
 interface CardListProps {
   cards: Card[];
+  onEdit: (card: Card) => void;
+  onDelete: (id: string) => void;
 }
 
-export function CardList({ cards }: CardListProps) {
+export function CardList({ cards, onEdit, onDelete }: CardListProps) {
   if (cards.length === 0) {
     return (
       <ul className={styles.list}>
@@ -18,7 +20,12 @@ export function CardList({ cards }: CardListProps) {
   return (
     <ul className={styles.list}>
       {cards.map((card) => (
-        <CardListItem key={card.id} card={card} />
+        <CardListItem
+          key={card.id}
+          card={card}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       ))}
     </ul>
   );
