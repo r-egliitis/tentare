@@ -9,6 +9,11 @@
   gap: 1rem;
 }
 
+.item > input[type="checkbox"] {
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+}
+
 .content {
   min-width: 0;
 }

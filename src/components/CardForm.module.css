@@ -14,21 +14,79 @@
   gap: 0.25rem;
 }
 
-.field label {
+.field label,
+.groupLabel {
   font-weight: 600;
   font-size: 0.9rem;
 }
 
-.field input,
+.field input[type="text"],
+.field input[type="number"],
 .field textarea {
   padding: 0.4rem 0.5rem;
   border: 1px solid var(--border-strong);
   border-radius: 4px;
 }
 
+.field input[type="number"] {
+  max-width: 6rem;
+}
+
 .field textarea {
   min-height: 4rem;
   resize: vertical;
+}
+
+.radioRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-weight: normal;
+  font-size: 1rem;
+}
+
+.radioRow label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: normal;
+}
+
+.wrongAnswerList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wrongAnswerList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+}
+
+.addWrongAnswerRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.addWrongAnswerRow input {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
+
+.warning {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 0.85rem;
 }
 
 .error {

@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { loadCards, saveCards } from "../data/storage";
-import type { Card } from "../types/card";
+import type { Card, DistractorMode } from "../types/card";
 
-interface CardValues {
+export interface CardValues {
   term: string;
   definition: string;
+  distractorMode: DistractorMode;
+  customWrongAnswers: string[];
+  numChoices: number;
 }
 
 // Single source of truth for the card deck: loads from localStorage on
@@ -18,17 +21,7 @@ export function useCards() {
   }, [cards]);
 
   function addCard(values: CardValues) {
-    setCards((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        term: values.term,
-        definition: values.definition,
-        distractorMode: "auto",
-        customWrongAnswers: [],
-        numChoices: 4,
-      },
-    ]);
+    setCards((prev) => [...prev, { id: crypto.randomUUID(), ...values }]);
   }
 
   function updateCard(id: string, values: CardValues) {
@@ -41,9 +34,21 @@ export function useCards() {
     setCards((prev) => prev.filter((card) => card.id !== id));
   }
 
+  function deleteCards(ids: string[]) {
+    const idSet = new Set(ids);
+    setCards((prev) => prev.filter((card) => !idSet.has(card.id)));
+  }
+
   function replaceCards(newCards: Card[]) {
     setCards(newCards);
   }
 
-  return { cards, addCard, updateCard, deleteCard, replaceCards };
+  return {
+    cards,
+    addCard,
+    updateCard,
+    deleteCard,
+    deleteCards,
+    replaceCards,
+  };
 }
