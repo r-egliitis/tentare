@@ -1,5 +1,5 @@
 .card {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -7,7 +7,7 @@
 
 .promptLabel {
   margin: 0 0 0.25rem;
-  color: #555;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -28,24 +28,14 @@
 .choice {
   width: 100%;
   text-align: left;
-  font: inherit;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: none;
-  cursor: pointer;
-}
-
-.choice:disabled {
-  cursor: default;
 }
 
 .correct {
-  border-color: #2e7d32;
-  background: rgba(46, 125, 50, 0.15);
+  border-color: var(--correct-border);
+  background: var(--correct-bg);
 }
 
 .incorrect {
-  border-color: #b00020;
-  background: rgba(176, 0, 32, 0.15);
+  border-color: var(--incorrect-border);
+  background: var(--incorrect-bg);
 }

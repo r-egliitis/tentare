@@ -1,5 +1,5 @@
 .form {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -21,9 +21,8 @@
 
 .field input,
 .field textarea {
-  font: inherit;
   padding: 0.4rem 0.5rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
 }
 
@@ -33,7 +32,7 @@
 }
 
 .error {
-  color: #b00020;
+  color: var(--danger);
   margin: 0;
   font-size: 0.9rem;
 }
@@ -41,4 +40,5 @@
 .actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }

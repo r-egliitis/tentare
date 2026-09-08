@@ -3,8 +3,10 @@ import { useCards } from "./hooks/useCards";
 import { CardList } from "./components/CardList";
 import { CardForm } from "./components/CardForm";
 import { ExportImportControls } from "./components/ExportImportControls";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { QuizView } from "./components/quiz/QuizView";
 import type { Card } from "./types/card";
+import styles from "./App.module.css";
 
 type FormMode = { type: "add" } | { type: "edit"; card: Card } | null;
 type View = "list" | "quiz";
@@ -26,7 +28,10 @@ export function App() {
   if (view === "quiz") {
     return (
       <>
-        <h1>Flashcard Quiz Tool</h1>
+        <div className={styles.header}>
+          <h1>Flashcard Quiz Tool</h1>
+          <ThemeToggle />
+        </div>
         <QuizView cards={cards} onExit={() => setView("list")} />
       </>
     );
@@ -34,7 +39,10 @@ export function App() {
 
   return (
     <>
-      <h1>Flashcard Quiz Tool</h1>
+      <div className={styles.header}>
+        <h1>Flashcard Quiz Tool</h1>
+        <ThemeToggle />
+      </div>
 
       {formMode ? (
         <CardForm
@@ -43,18 +51,19 @@ export function App() {
           onCancel={() => setFormMode(null)}
         />
       ) : (
-        <button type="button" onClick={() => setFormMode({ type: "add" })}>
-          Add Card
-        </button>
+        <div className={styles.actionRow}>
+          <button type="button" onClick={() => setFormMode({ type: "add" })}>
+            Add Card
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("quiz")}
+            disabled={cards.length < 2}
+          >
+            Start Quiz
+          </button>
+        </div>
       )}
-
-      <button
-        type="button"
-        onClick={() => setView("quiz")}
-        disabled={cards.length < 2}
-      >
-        Start Quiz
-      </button>
       {cards.length < 2 && <p>Add at least 2 cards to start a quiz.</p>}
 
       <ExportImportControls cards={cards} onImport={replaceCards} />

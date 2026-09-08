@@ -1,5 +1,5 @@
 .item {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0.75rem 1rem;
   margin-bottom: 0.5rem;
@@ -18,11 +18,12 @@
 }
 
 .definition {
-  color: #555;
+  color: var(--text-muted);
 }
 
 .actions {
   display: flex;
   gap: 0.5rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }

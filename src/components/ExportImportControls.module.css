@@ -6,7 +6,7 @@
 }
 
 .error {
-  color: #b00020;
+  color: var(--danger);
   margin: 0;
   font-size: 0.9rem;
   flex-basis: 100%;

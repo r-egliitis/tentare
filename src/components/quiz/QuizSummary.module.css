@@ -1,5 +1,5 @@
 .summary {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 1.5rem;
   text-align: center;
@@ -15,4 +15,5 @@
   display: flex;
   justify-content: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
