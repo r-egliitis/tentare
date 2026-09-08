@@ -17,3 +17,28 @@
   gap: 0.5rem;
   flex-wrap: wrap;
 }
+
+.missedReview {
+  text-align: left;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.missedReview h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.missedReview ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.missedReview li {
+  color: var(--text-muted);
+}

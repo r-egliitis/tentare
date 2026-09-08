@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Card } from "../../types/card";
 import { buildQuizOrder, generateQuestion } from "../../utils/quizGenerator";
 import { QuestionCard } from "./QuestionCard";
@@ -18,6 +18,7 @@ export function QuizView({ cards, onExit }: QuizViewProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [missedCards, setMissedCards] = useState<Card[]>([]);
   const [sessionComplete, setSessionComplete] = useState(false);
 
   // Regenerated fresh each question (not just picked once) so distractors
@@ -31,10 +32,14 @@ export function QuizView({ cards, onExit }: QuizViewProps) {
     if (isAnswered) return;
     setSelectedAnswer(choice);
     setIsAnswered(true);
+    const isCorrect = choice === currentQuestion.correctAnswer;
     setScore((prev) => ({
-      correct: prev.correct + (choice === currentQuestion.correctAnswer ? 1 : 0),
+      correct: prev.correct + (isCorrect ? 1 : 0),
       total: prev.total + 1,
     }));
+    if (!isCorrect) {
+      setMissedCards((prev) => [...prev, currentQuestion.card]);
+    }
   }
 
   function handleNext() {
@@ -53,19 +58,65 @@ export function QuizView({ cards, onExit }: QuizViewProps) {
     setSelectedAnswer(null);
     setIsAnswered(false);
     setScore({ correct: 0, total: 0 });
+    setMissedCards([]);
     setSessionComplete(false);
   }
+
+  function handleRetryMissed() {
+    setQuizOrder(buildQuizOrder(missedCards));
+    setCurrentIndex(0);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setScore({ correct: 0, total: 0 });
+    setMissedCards([]);
+    setSessionComplete(false);
+  }
+
+  // Keyboard shortcuts: 1-9 pick a choice before answering, Enter/Space
+  // advances once answered. Skipped once the session is complete (the
+  // summary screen has its own buttons, no shortcuts needed there).
+  useEffect(() => {
+    if (sessionComplete) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (!isAnswered) {
+        const digit = Number(event.key);
+        if (
+          Number.isInteger(digit) &&
+          digit >= 1 &&
+          digit <= currentQuestion.choices.length
+        ) {
+          handleSelectAnswer(currentQuestion.choices[digit - 1]);
+        }
+      } else if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleNext();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
 
   if (sessionComplete) {
     return (
       <QuizSummary
         score={score.correct}
         total={score.total}
+        missedCards={missedCards}
         onRestart={handleRestart}
+        onRetryMissed={
+          missedCards.length > 0 ? handleRetryMissed : undefined
+        }
         onExit={onExit}
       />
     );
   }
+
+  const answeredCount = currentIndex + (isAnswered ? 1 : 0);
+  const progressPercent = Math.round(
+    (answeredCount / quizOrder.length) * 100,
+  );
 
   return (
     <div>
@@ -76,6 +127,13 @@ export function QuizView({ cards, onExit }: QuizViewProps) {
         <button type="button" onClick={onExit}>
           Exit Quiz
         </button>
+      </div>
+
+      <div className={styles.progressTrack}>
+        <div
+          className={styles.progressFill}
+          style={{ width: `${progressPercent}%` }}
+        />
       </div>
 
       <QuestionCard
