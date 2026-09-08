@@ -87,6 +87,14 @@ export function DeckView({
     });
   }
 
+  function handleSelectAll() {
+    setSelectedIds(new Set(visibleCards.map((c) => c.id)));
+  }
+
+  function handleDeselectAll() {
+    setSelectedIds(new Set());
+  }
+
   function handleDeleteCard(id: string) {
     const card = cards.find((c) => c.id === id);
     if (!card) return;
@@ -174,6 +182,12 @@ export function DeckView({
 
       {selectedIds.size > 0 && (
         <div className={styles.actionRow}>
+          <button type="button" onClick={handleSelectAll}>
+            Select All
+          </button>
+          <button type="button" onClick={handleDeselectAll}>
+            Deselect All
+          </button>
           <button type="button" onClick={handleDeleteSelected}>
             Delete Selected ({selectedIds.size})
           </button>
