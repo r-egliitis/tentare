@@ -10,7 +10,7 @@ function isDistractorMode(value: unknown): value is DistractorMode {
 // Accepts anything with the required fields, defaulting missing/invalid
 // optional fields rather than rejecting the whole card — keeps older or
 // hand-edited data importable instead of silently dropping it.
-function normalizeCard(raw: unknown): Card | null {
+export function normalizeCard(raw: unknown): Card | null {
   if (typeof raw !== "object" || raw === null) return null;
   const r = raw as Record<string, unknown>;
 

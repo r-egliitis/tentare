@@ -1,0 +1,13 @@
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.error {
+  color: #b00020;
+  margin: 0;
+  font-size: 0.9rem;
+  flex-basis: 100%;
+}

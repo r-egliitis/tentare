@@ -41,5 +41,9 @@ export function useCards() {
     setCards((prev) => prev.filter((card) => card.id !== id));
   }
 
-  return { cards, addCard, updateCard, deleteCard };
+  function replaceCards(newCards: Card[]) {
+    setCards(newCards);
+  }
+
+  return { cards, addCard, updateCard, deleteCard, replaceCards };
 }
