@@ -4,6 +4,8 @@ import styles from "./CardList.module.css";
 
 interface CardListProps {
   cards: Card[];
+  /** Whether a search query is currently filtering `cards`. */
+  isFiltered: boolean;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
   onEdit: (card: Card) => void;
@@ -12,6 +14,7 @@ interface CardListProps {
 
 export function CardList({
   cards,
+  isFiltered,
   selectedIds,
   onToggleSelect,
   onEdit,
@@ -20,7 +23,11 @@ export function CardList({
   if (cards.length === 0) {
     return (
       <ul className={styles.list}>
-        <li>No cards yet.</li>
+        <li>
+          {isFiltered
+            ? "No cards match your search."
+            : 'No cards yet — click "Add Card" to create your first one.'}
+        </li>
       </ul>
     );
   }

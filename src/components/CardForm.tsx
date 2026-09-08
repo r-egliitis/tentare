@@ -38,6 +38,22 @@ export function CardForm({
     (t) => t.toLowerCase() === term.trim().toLowerCase(),
   );
 
+  const isDirty =
+    term !== (initialCard?.term ?? "") ||
+    definition !== (initialCard?.definition ?? "") ||
+    distractorMode !== (initialCard?.distractorMode ?? "auto") ||
+    numChoices !== (initialCard?.numChoices ?? 4) ||
+    customWrongAnswers.length !==
+      (initialCard?.customWrongAnswers.length ?? 0) ||
+    customWrongAnswers.some(
+      (answer, i) => answer !== initialCard?.customWrongAnswers[i],
+    );
+
+  function handleCancel() {
+    if (isDirty && !window.confirm("Discard your changes?")) return;
+    onCancel();
+  }
+
   function handleAddWrongAnswer() {
     const trimmed = newWrongAnswer.trim();
     if (!trimmed) return;
@@ -177,7 +193,7 @@ export function CardForm({
       {error && <p className={styles.error}>{error}</p>}
       <div className={styles.actions}>
         <button type="submit">{initialCard ? "Save" : "Add Card"}</button>
-        <button type="button" onClick={onCancel}>
+        <button type="button" onClick={handleCancel}>
           Cancel
         </button>
       </div>

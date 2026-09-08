@@ -16,12 +16,6 @@ export function CardListItem({
   onEdit,
   onDelete,
 }: CardListItemProps) {
-  function handleDelete() {
-    if (window.confirm(`Delete "${card.term}"?`)) {
-      onDelete(card.id);
-    }
-  }
-
   return (
     <li className={styles.item}>
       <input
@@ -38,7 +32,7 @@ export function CardListItem({
         <button type="button" onClick={() => onEdit(card)}>
           Edit
         </button>
-        <button type="button" onClick={handleDelete}>
+        <button type="button" onClick={() => onDelete(card.id)}>
           Delete
         </button>
       </div>

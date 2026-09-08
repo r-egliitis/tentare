@@ -71,6 +71,19 @@ export function App() {
     });
   }
 
+  function handleDeleteCard(id: string) {
+    const card = cards.find((c) => c.id === id);
+    if (!card) return;
+
+    const previousCards = cards;
+    deleteCard(id);
+    setToast({
+      message: `Deleted "${card.term}".`,
+      actionLabel: "Undo",
+      onAction: () => replaceCards(previousCards),
+    });
+  }
+
   function handleDeleteSelected() {
     const ids = [...selectedIds];
     if (ids.length === 0) return;
@@ -152,10 +165,11 @@ export function App() {
 
       <CardList
         cards={visibleCards}
+        isFiltered={searchQuery.trim().length > 0}
         selectedIds={selectedIds}
         onToggleSelect={handleToggleSelect}
         onEdit={(card) => setFormMode({ type: "edit", card })}
-        onDelete={deleteCard}
+        onDelete={handleDeleteCard}
       />
 
       {toast && (
