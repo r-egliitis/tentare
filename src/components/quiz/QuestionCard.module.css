@@ -1,0 +1,51 @@
+.card {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.promptLabel {
+  margin: 0 0 0.25rem;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.promptText {
+  margin: 0 0 1rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.choices {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.choice {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.choice:disabled {
+  cursor: default;
+}
+
+.correct {
+  border-color: #2e7d32;
+  background: rgba(46, 125, 50, 0.15);
+}
+
+.incorrect {
+  border-color: #b00020;
+  background: rgba(176, 0, 32, 0.15);
+}
