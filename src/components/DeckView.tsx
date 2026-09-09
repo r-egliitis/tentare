@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import type { Card } from "../types/card";
-import type { Deck } from "../types/deck";
+import type { Deck, QuizSettings } from "../types/deck";
 import type { CardValues } from "../hooks/useDecks";
 import { CardList } from "./CardList";
 import { CardForm } from "./CardForm";
 import { CardListControls } from "./CardListControls";
 import type { SortOrder } from "./CardListControls";
+import { DeckSettingsForm } from "./DeckSettingsForm";
 import { ExportImportControls } from "./ExportImportControls";
 import { Toast } from "./Toast";
 import { QuizView } from "./quiz/QuizView";
@@ -19,6 +20,7 @@ interface DeckViewProps {
   onDeleteCard: (cardId: string) => void;
   onDeleteCards: (ids: string[]) => void;
   onReplaceCards: (cards: Card[]) => void;
+  onUpdateSettings: (settings: QuizSettings) => void;
 }
 
 type FormMode = { type: "add" } | { type: "edit"; card: Card } | null;
@@ -37,9 +39,11 @@ export function DeckView({
   onDeleteCard,
   onDeleteCards,
   onReplaceCards,
+  onUpdateSettings,
 }: DeckViewProps) {
   const cards = deck.cards;
   const [formMode, setFormMode] = useState<FormMode>(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [view, setView] = useState<View>("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("added");
@@ -134,7 +138,11 @@ export function DeckView({
         <div className={styles.header}>
           <h2>{deck.name}</h2>
         </div>
-        <QuizView cards={cards} onExit={() => setView("list")} />
+        <QuizView
+          cards={cards}
+          settings={deck.settings}
+          onExit={() => setView("list")}
+        />
       </>
     );
   }
@@ -142,7 +150,10 @@ export function DeckView({
   return (
     <>
       <div className={styles.header}>
-        <h2>{deck.name}</h2>
+        <div>
+          <h2>{deck.name}</h2>
+          {deck.bio && <p className={styles.deckBio}>{deck.bio}</p>}
+        </div>
         <button type="button" onClick={onBack}>
           ← Back to Quizzes
         </button>
@@ -155,9 +166,24 @@ export function DeckView({
           onSave={handleSave}
           onCancel={() => setFormMode(null)}
         />
+      ) : showSettings ? (
+        <DeckSettingsForm
+          settings={deck.settings}
+          onSave={(settings) => {
+            onUpdateSettings(settings);
+            setShowSettings(false);
+          }}
+          onCancel={() => setShowSettings(false)}
+        />
       ) : (
         <div className={styles.actionRow}>
-          <button type="button" onClick={() => setFormMode({ type: "add" })}>
+          <button
+            type="button"
+            onClick={() => {
+              setFormMode({ type: "add" });
+              setShowSettings(false);
+            }}
+          >
             Add Card
           </button>
           <button
@@ -166,6 +192,15 @@ export function DeckView({
             disabled={cards.length < 2}
           >
             Start Quiz
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowSettings(true);
+              setFormMode(null);
+            }}
+          >
+            Settings
           </button>
         </div>
       )}
@@ -199,7 +234,10 @@ export function DeckView({
         isFiltered={searchQuery.trim().length > 0}
         selectedIds={selectedIds}
         onToggleSelect={handleToggleSelect}
-        onEdit={(card) => setFormMode({ type: "edit", card })}
+        onEdit={(card) => {
+          setFormMode({ type: "edit", card });
+          setShowSettings(false);
+        }}
         onDelete={handleDeleteCard}
       />
 

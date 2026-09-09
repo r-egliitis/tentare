@@ -1,4 +1,5 @@
 import type { Card } from "../types/card";
+import type { PromptDirection } from "../types/deck";
 
 export type PromptSide = "term" | "definition";
 
@@ -13,7 +14,7 @@ export interface QuizQuestion {
   choices: string[];
 }
 
-function shuffle<T>(items: T[]): T[] {
+export function shuffle<T>(items: T[]): T[] {
   const result = [...items];
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -27,8 +28,17 @@ export function buildQuizOrder(cards: Card[]): Card[] {
   return shuffle(cards);
 }
 
-export function generateQuestion(card: Card, allCards: Card[]): QuizQuestion {
-  const promptSide: PromptSide = Math.random() < 0.5 ? "term" : "definition";
+export function generateQuestion(
+  card: Card,
+  allCards: Card[],
+  direction: PromptDirection = "mix",
+): QuizQuestion {
+  const promptSide: PromptSide =
+    direction === "mix"
+      ? Math.random() < 0.5
+        ? "term"
+        : "definition"
+      : direction;
   const promptText = promptSide === "term" ? card.term : card.definition;
   const correctAnswer = promptSide === "term" ? card.definition : card.term;
 

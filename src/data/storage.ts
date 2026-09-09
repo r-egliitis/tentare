@@ -1,6 +1,7 @@
 import { sampleCards } from "./sampleCards";
 import type { Card, DistractorMode } from "../types/card";
-import type { Deck } from "../types/deck";
+import type { Deck, QuizSettings, QuizStyle, PromptDirection } from "../types/deck";
+import { DEFAULT_QUIZ_SETTINGS } from "../types/deck";
 
 const DECKS_KEY = "flashcard-quiz-tool:decks";
 // Pre-multi-quiz storage format: a single flat Card[]. Kept only so
@@ -45,6 +46,26 @@ function normalizeCards(raw: unknown): Card[] {
   return raw.map(normalizeCard).filter((card): card is Card => card !== null);
 }
 
+function isQuizStyle(value: unknown): value is QuizStyle {
+  return value === "whole" || value === "endless" || value === "untilCorrect";
+}
+
+function isPromptDirection(value: unknown): value is PromptDirection {
+  return value === "term" || value === "definition" || value === "mix";
+}
+
+function normalizeQuizSettings(raw: unknown): QuizSettings {
+  if (typeof raw !== "object" || raw === null) return DEFAULT_QUIZ_SETTINGS;
+  const r = raw as Record<string, unknown>;
+
+  return {
+    style: isQuizStyle(r.style) ? r.style : DEFAULT_QUIZ_SETTINGS.style,
+    direction: isPromptDirection(r.direction)
+      ? r.direction
+      : DEFAULT_QUIZ_SETTINGS.direction,
+  };
+}
+
 function normalizeDeck(raw: unknown): Deck | null {
   if (typeof raw !== "object" || raw === null) return null;
   const r = raw as Record<string, unknown>;
@@ -54,7 +75,9 @@ function normalizeDeck(raw: unknown): Deck | null {
   return {
     id: r.id,
     name: r.name,
+    bio: typeof r.bio === "string" ? r.bio : "",
     cards: normalizeCards(r.cards),
+    settings: normalizeQuizSettings(r.settings),
   };
 }
 
@@ -68,7 +91,13 @@ function migrateLegacyCards(): Deck[] | null {
       throw new Error("Legacy cards value is not an array");
     }
     const migrated: Deck[] = [
-      { id: crypto.randomUUID(), name: "My Flashcards", cards: normalizeCards(parsed) },
+      {
+        id: crypto.randomUUID(),
+        name: "My Flashcards",
+        bio: "",
+        cards: normalizeCards(parsed),
+        settings: DEFAULT_QUIZ_SETTINGS,
+      },
     ];
     saveDecks(migrated);
     // Only migrate once — remove the old key now that it's been folded in.
@@ -107,7 +136,15 @@ export function loadDecks(): Deck[] {
   if (migrated) return migrated;
 
   // True first run — no new or legacy data at all.
-  return [{ id: crypto.randomUUID(), name: "My Flashcards", cards: sampleCards }];
+  return [
+    {
+      id: crypto.randomUUID(),
+      name: "My Flashcards",
+      bio: "",
+      cards: sampleCards,
+      settings: DEFAULT_QUIZ_SETTINGS,
+    },
+  ];
 }
 
 export function saveDecks(decks: Deck[]): void {

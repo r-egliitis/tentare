@@ -1,96 +1,39 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import type { Card } from "../../types/card";
-import { buildQuizOrder, generateQuestion } from "../../utils/quizGenerator";
+import type { QuizSettings } from "../../types/deck";
+import { useQuizSession } from "./useQuizSession";
 import { QuestionCard } from "./QuestionCard";
 import { QuizSummary } from "./QuizSummary";
 import styles from "./QuizView.module.css";
 
 interface QuizViewProps {
   cards: Card[];
+  settings: QuizSettings;
   onExit: () => void;
 }
 
-export function QuizView({ cards, onExit }: QuizViewProps) {
-  const [quizOrder, setQuizOrder] = useState<Card[]>(() =>
-    buildQuizOrder(cards),
-  );
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [score, setScore] = useState({ correct: 0, total: 0 });
-  const [missedCards, setMissedCards] = useState<Card[]>([]);
-  const [sessionComplete, setSessionComplete] = useState(false);
-
-  // Regenerated fresh each question (not just picked once) so distractors
-  // aren't stale if this component ever re-renders for other reasons.
-  const currentQuestion = useMemo(
-    () => generateQuestion(quizOrder[currentIndex], cards),
-    [quizOrder, currentIndex, cards],
-  );
-
-  function handleSelectAnswer(choice: string) {
-    if (isAnswered) return;
-    setSelectedAnswer(choice);
-    setIsAnswered(true);
-    const isCorrect = choice === currentQuestion.correctAnswer;
-    setScore((prev) => ({
-      correct: prev.correct + (isCorrect ? 1 : 0),
-      total: prev.total + 1,
-    }));
-    if (!isCorrect) {
-      setMissedCards((prev) => [...prev, currentQuestion.card]);
-    }
-  }
-
-  function handleNext() {
-    if (currentIndex + 1 >= quizOrder.length) {
-      setSessionComplete(true);
-      return;
-    }
-    setCurrentIndex((i) => i + 1);
-    setSelectedAnswer(null);
-    setIsAnswered(false);
-  }
-
-  function handleRestart() {
-    setQuizOrder(buildQuizOrder(cards));
-    setCurrentIndex(0);
-    setSelectedAnswer(null);
-    setIsAnswered(false);
-    setScore({ correct: 0, total: 0 });
-    setMissedCards([]);
-    setSessionComplete(false);
-  }
-
-  function handleRetryMissed() {
-    setQuizOrder(buildQuizOrder(missedCards));
-    setCurrentIndex(0);
-    setSelectedAnswer(null);
-    setIsAnswered(false);
-    setScore({ correct: 0, total: 0 });
-    setMissedCards([]);
-    setSessionComplete(false);
-  }
+export function QuizView({ cards, settings, onExit }: QuizViewProps) {
+  const session = useQuizSession(cards, settings);
 
   // Keyboard shortcuts: 1-9 pick a choice before answering, Enter/Space
   // advances once answered. Skipped once the session is complete (the
   // summary screen has its own buttons, no shortcuts needed there).
   useEffect(() => {
-    if (sessionComplete) return;
+    if (session.sessionComplete) return;
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (!isAnswered) {
+      if (!session.isAnswered) {
         const digit = Number(event.key);
         if (
           Number.isInteger(digit) &&
           digit >= 1 &&
-          digit <= currentQuestion.choices.length
+          digit <= session.currentQuestion.choices.length
         ) {
-          handleSelectAnswer(currentQuestion.choices[digit - 1]);
+          session.selectAnswer(session.currentQuestion.choices[digit - 1]);
         }
       } else if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        handleNext();
+        session.advance();
       }
     }
 
@@ -98,53 +41,67 @@ export function QuizView({ cards, onExit }: QuizViewProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   });
 
-  if (sessionComplete) {
+  if (session.sessionComplete) {
     return (
       <QuizSummary
-        score={score.correct}
-        total={score.total}
-        missedCards={missedCards}
-        onRestart={handleRestart}
+        score={session.score.correct}
+        total={session.score.total}
+        missedCards={session.missedCards}
+        onRestart={session.restart}
         onRetryMissed={
-          missedCards.length > 0 ? handleRetryMissed : undefined
+          session.missedCards.length > 0 ? session.retryMissed : undefined
         }
         onExit={onExit}
       />
     );
   }
 
-  const answeredCount = currentIndex + (isAnswered ? 1 : 0);
-  const progressPercent = Math.round(
-    (answeredCount / quizOrder.length) * 100,
-  );
+  const progress = session.progress;
+  // "Whole test" gives optimistic credit for the currently-answered-but-
+  // not-yet-advanced question, matching the original behavior exactly
+  // (the bar used to fill the instant you answered, before clicking
+  // Next). "Until all answered correct" doesn't get that bump — a card
+  // only counts once it's actually left the pool.
+  const barFillCount =
+    progress === null
+      ? 0
+      : progress.current + (settings.style === "whole" && session.isAnswered ? 1 : 0);
 
   return (
     <div>
       <div className={styles.header}>
         <p className={styles.progress}>
-          Question {currentIndex + 1} of {quizOrder.length}
+          {progress === null
+            ? `${session.score.correct} correct / ${session.score.total} answered`
+            : settings.style === "untilCorrect"
+              ? `${progress.current} of ${progress.total} correct`
+              : `Question ${progress.current + 1} of ${progress.total}`}
         </p>
         <button type="button" onClick={onExit}>
           Exit Quiz
         </button>
       </div>
 
-      <div className={styles.progressTrack}>
-        <div
-          className={styles.progressFill}
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
+      {progress !== null && (
+        <div className={styles.progressTrack}>
+          <div
+            className={styles.progressFill}
+            style={{
+              width: `${Math.round((barFillCount / progress.total) * 100)}%`,
+            }}
+          />
+        </div>
+      )}
 
       <QuestionCard
-        question={currentQuestion}
-        selected={selectedAnswer}
-        isAnswered={isAnswered}
-        onSelectAnswer={handleSelectAnswer}
+        question={session.currentQuestion}
+        selected={session.selectedAnswer}
+        isAnswered={session.isAnswered}
+        onSelectAnswer={session.selectAnswer}
       />
 
-      {isAnswered && (
-        <button type="button" onClick={handleNext}>
+      {session.isAnswered && (
+        <button type="button" onClick={session.advance}>
           Next
         </button>
       )}

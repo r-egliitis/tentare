@@ -21,10 +21,13 @@ export function DeckListItem({
         className={styles.openButton}
         onClick={() => onOpen(deck.id)}
       >
-        <span className={styles.name}>{deck.name}</span>
-        <span className={styles.count}>
-          {deck.cards.length} card{deck.cards.length === 1 ? "" : "s"}
+        <span className={styles.titleRow}>
+          <span className={styles.name}>{deck.name}</span>
+          <span className={styles.count}>
+            {deck.cards.length} card{deck.cards.length === 1 ? "" : "s"}
+          </span>
         </span>
+        {deck.bio && <span className={styles.bio}>{deck.bio}</span>}
       </button>
       <div className={styles.actions}>
         <button type="button" onClick={() => onRename(deck)}>

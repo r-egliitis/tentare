@@ -14,11 +14,18 @@
   min-width: 0;
   text-align: left;
   display: flex;
-  align-items: baseline;
-  gap: 0.6rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.15rem;
   border: none;
   background: none;
   padding: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
 }
 
 .name {
@@ -29,6 +36,14 @@
   color: var(--text-muted);
   font-size: 0.85rem;
   white-space: nowrap;
+}
+
+.bio {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .actions {

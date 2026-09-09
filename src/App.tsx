@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useDecks } from "./hooks/useDecks";
+import type { DeckDetails } from "./hooks/useDecks";
 import { DeckList } from "./components/DeckList";
 import { DeckForm } from "./components/DeckForm";
 import { DeckView } from "./components/DeckView";
@@ -20,7 +21,8 @@ export function App() {
   const {
     decks,
     addDeck,
-    renameDeck,
+    updateDeckDetails,
+    updateDeckSettings,
     deleteDeck,
     replaceAllDecks,
     addCard,
@@ -33,11 +35,11 @@ export function App() {
   const [deckFormMode, setDeckFormMode] = useState<DeckFormMode>(null);
   const [toast, setToast] = useState<ToastState>(null);
 
-  function handleSaveDeck(name: string) {
+  function handleSaveDeck(values: DeckDetails) {
     if (deckFormMode?.type === "edit") {
-      renameDeck(deckFormMode.deck.id, name);
+      updateDeckDetails(deckFormMode.deck.id, values);
     } else {
-      const newId = addDeck(name);
+      const newId = addDeck(values);
       setAppView({ type: "deck", deckId: newId });
     }
     setDeckFormMode(null);
@@ -89,6 +91,7 @@ export function App() {
           onDeleteCard={(cardId) => deleteCard(deck.id, cardId)}
           onDeleteCards={(ids) => deleteCards(deck.id, ids)}
           onReplaceCards={(cards) => replaceDeckCards(deck.id, cards)}
+          onUpdateSettings={(settings) => updateDeckSettings(deck.id, settings)}
         />
       </>
     );

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { loadDecks, saveDecks } from "../data/storage";
 import type { Card, DistractorMode } from "../types/card";
-import type { Deck } from "../types/deck";
+import type { Deck, QuizSettings } from "../types/deck";
+import { DEFAULT_QUIZ_SETTINGS } from "../types/deck";
 
 export interface CardValues {
   term: string;
@@ -9,6 +10,11 @@ export interface CardValues {
   distractorMode: DistractorMode;
   customWrongAnswers: string[];
   numChoices: number;
+}
+
+export interface DeckDetails {
+  name: string;
+  bio: string;
 }
 
 // Single source of truth for every quiz (deck) and its cards: loads from
@@ -21,15 +27,24 @@ export function useDecks() {
     saveDecks(decks);
   }, [decks]);
 
-  function addDeck(name: string): string {
+  function addDeck(values: DeckDetails): string {
     const id = crypto.randomUUID();
-    setDecks((prev) => [...prev, { id, name, cards: [] }]);
+    setDecks((prev) => [
+      ...prev,
+      { id, ...values, cards: [], settings: DEFAULT_QUIZ_SETTINGS },
+    ]);
     return id;
   }
 
-  function renameDeck(id: string, name: string) {
+  function updateDeckDetails(id: string, values: DeckDetails) {
     setDecks((prev) =>
-      prev.map((deck) => (deck.id === id ? { ...deck, name } : deck)),
+      prev.map((deck) => (deck.id === id ? { ...deck, ...values } : deck)),
+    );
+  }
+
+  function updateDeckSettings(id: string, settings: QuizSettings) {
+    setDecks((prev) =>
+      prev.map((deck) => (deck.id === id ? { ...deck, settings } : deck)),
     );
   }
 
@@ -78,7 +93,8 @@ export function useDecks() {
   return {
     decks,
     addDeck,
-    renameDeck,
+    updateDeckDetails,
+    updateDeckSettings,
     deleteDeck,
     replaceAllDecks,
     addCard,

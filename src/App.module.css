@@ -10,6 +10,12 @@
   margin: 0;
 }
 
+.deckBio {
+  margin: 0.15rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 .actionRow {
   display: flex;
   align-items: center;
