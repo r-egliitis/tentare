@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
+import { useAuth } from "./hooks/useAuth";
 import { useDecks } from "./hooks/useDecks";
 import type { DeckDetails } from "./hooks/useDecks";
+import { peekLocalDecks } from "./data/storage";
+import { AuthForm } from "./components/AuthForm";
 import { DeckList } from "./components/DeckList";
 import { DeckForm } from "./components/DeckForm";
 import { DeckView } from "./components/DeckView";
@@ -18,8 +22,40 @@ type ToastState = {
 } | null;
 
 export function App() {
+  const { user, loading, signOut } = useAuth();
+
+  if (loading) {
+    return (
+      <div className={styles.header}>
+        <h1>Flashcard Quiz Tool</h1>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <>
+        <div className={styles.header}>
+          <h1>Flashcard Quiz Tool</h1>
+          <ThemeToggle />
+        </div>
+        <AuthForm />
+      </>
+    );
+  }
+
+  return <AuthenticatedApp user={user} onSignOut={signOut} />;
+}
+
+interface AuthenticatedAppProps {
+  user: User;
+  onSignOut: () => void;
+}
+
+function AuthenticatedApp({ user, onSignOut }: AuthenticatedAppProps) {
   const {
     decks,
+    loading: decksLoading,
     addDeck,
     updateDeckDetails,
     updateDeckSettings,
@@ -30,10 +66,32 @@ export function App() {
     deleteCard,
     deleteCards,
     replaceDeckCards,
-  } = useDecks();
+    addSampleDeck,
+    importLocalDecks,
+  } = useDecks(user.id);
   const [appView, setAppView] = useState<AppView>({ type: "decks" });
   const [deckFormMode, setDeckFormMode] = useState<DeckFormMode>(null);
   const [toast, setToast] = useState<ToastState>(null);
+  const [importOffer, setImportOffer] = useState<Deck[] | null>(null);
+
+  // One-time "empty account" welcome: once we know for sure this account has
+  // no quizzes yet, either offer to import this device's pre-login
+  // localStorage decks, or seed a starter deck so signup isn't a blank page.
+  // Gated by a per-user localStorage flag so it's only ever decided once.
+  useEffect(() => {
+    if (decksLoading || decks.length > 0) return;
+    const offeredKey = `flashcard-quiz-tool:import-offered:${user.id}`;
+    if (localStorage.getItem(offeredKey)) return;
+    localStorage.setItem(offeredKey, "1");
+
+    const localDecks = peekLocalDecks();
+    if (localDecks) {
+      setImportOffer(localDecks);
+    } else {
+      addSampleDeck();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decksLoading, decks.length, user.id]);
 
   function handleSaveDeck(values: DeckDetails) {
     if (deckFormMode?.type === "edit") {
@@ -101,7 +159,12 @@ export function App() {
     <>
       <div className={styles.header}>
         <h1>Flashcard Quiz Tool</h1>
-        <ThemeToggle />
+        <div className={styles.actionRow}>
+          <ThemeToggle />
+          <button type="button" onClick={onSignOut}>
+            Sign out
+          </button>
+        </div>
       </div>
 
       {deckFormMode ? (
@@ -124,6 +187,20 @@ export function App() {
         onRename={(deck) => setDeckFormMode({ type: "edit", deck })}
         onDelete={handleDeleteDeck}
       />
+
+      {importOffer && (
+        <Toast
+          message={`Import ${importOffer.length} quiz${importOffer.length === 1 ? "" : "zes"} from this device?`}
+          actionLabel="Import"
+          durationMs={120000}
+          onAction={() => {
+            importLocalDecks(importOffer);
+            localStorage.removeItem("flashcard-quiz-tool:decks");
+            setImportOffer(null);
+          }}
+          onDismiss={() => setImportOffer(null)}
+        />
+      )}
 
       {toast && (
         <Toast

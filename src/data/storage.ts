@@ -66,7 +66,7 @@ function normalizeQuizSettings(raw: unknown): QuizSettings {
   };
 }
 
-function normalizeDeck(raw: unknown): Deck | null {
+export function normalizeDeck(raw: unknown): Deck | null {
   if (typeof raw !== "object" || raw === null) return null;
   const r = raw as Record<string, unknown>;
 
@@ -152,5 +152,27 @@ export function saveDecks(decks: Deck[]): void {
     localStorage.setItem(DECKS_KEY, JSON.stringify(decks));
   } catch (err) {
     console.error("Failed to save quizzes to localStorage.", err);
+  }
+}
+
+// Read-only peek at this device's locally-saved decks, with no side effects
+// (no sample seeding, no legacy migration) — used only to decide whether to
+// offer a one-time import into a newly-created cloud account. Deliberately
+// not loadDecks(): that seeds a sample deck when localStorage is empty,
+// which would make a brand-new signup get offered an import of a deck that
+// was never really theirs. Returns null if there's nothing meaningful.
+export function peekLocalDecks(): Deck[] | null {
+  const raw = localStorage.getItem(DECKS_KEY);
+  if (raw === null) return null;
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+    const decks = parsed
+      .map(normalizeDeck)
+      .filter((deck): deck is Deck => deck !== null);
+    return decks.length > 0 ? decks : null;
+  } catch {
+    return null;
   }
 }
