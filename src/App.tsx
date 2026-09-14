@@ -8,12 +8,16 @@ import { AuthForm } from "./components/AuthForm";
 import { DeckList } from "./components/DeckList";
 import { DeckForm } from "./components/DeckForm";
 import { DeckView } from "./components/DeckView";
+import { ProfilePage } from "./components/ProfilePage";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { Toast } from "./components/Toast";
 import type { Deck } from "./types/deck";
 import styles from "./App.module.css";
 
-type AppView = { type: "decks" } | { type: "deck"; deckId: string };
+type AppView =
+  | { type: "decks" }
+  | { type: "deck"; deckId: string }
+  | { type: "profile" };
 type DeckFormMode = { type: "add" } | { type: "edit"; deck: Deck } | null;
 type ToastState = {
   message: string;
@@ -155,12 +159,27 @@ function AuthenticatedApp({ user, onSignOut }: AuthenticatedAppProps) {
     );
   }
 
+  if (appView.type === "profile") {
+    return (
+      <>
+        <div className={styles.header}>
+          <h1>Flashcard Quiz Tool</h1>
+          <ThemeToggle />
+        </div>
+        <ProfilePage user={user} onBack={() => setAppView({ type: "decks" })} />
+      </>
+    );
+  }
+
   return (
     <>
       <div className={styles.header}>
         <h1>Flashcard Quiz Tool</h1>
         <div className={styles.actionRow}>
           <ThemeToggle />
+          <button type="button" onClick={() => setAppView({ type: "profile" })}>
+            Profile
+          </button>
           <button type="button" onClick={onSignOut}>
             Sign out
           </button>
